@@ -1,0 +1,6 @@
+name: FastShulker
+version: '1.0-SNAPSHOT'
+main: org.random11999.fastShulker.FastShulker
+api-version: '1.21'
+authors: [ random11999 ]
+description: A plugin that allow player open Shulker without putting them on the ground
