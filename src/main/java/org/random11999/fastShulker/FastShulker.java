@@ -6,10 +6,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class FastShulker extends JavaPlugin implements Listener {
@@ -50,8 +52,39 @@ public final class FastShulker extends JavaPlugin implements Listener {
         ShulkerBox shulkerBox = (ShulkerBox) meta.getBlockState();
         Inventory inventory = shulkerBox.getInventory();
 
+        // 保存潜影盒引用到玩家元数据中，用于关闭时保存
+        player.setMetadata("openedShulker", new FixedMetadataValue(this, item));
+
         // 打开GUI界面
         player.openInventory(inventory);
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player)) return;
+
+        Player player = (Player) event.getPlayer();
+
+        // 获取之前保存的潜影盒物品
+        if (!player.hasMetadata("openedShulker")) return;
+
+        ItemStack shulkerItem = (ItemStack) player.getMetadata("openedShulker").get(0).value();
+        if (shulkerItem == null || !isShulkerBox(shulkerItem)) return;
+
+        // 更新潜影盒物品的NBT数据
+        BlockStateMeta meta = (BlockStateMeta) shulkerItem.getItemMeta();
+        ShulkerBox shulkerBox = (ShulkerBox) meta.getBlockState();
+
+        // 将关闭的库存内容保存回潜影盒
+        shulkerBox.getInventory().setContents(event.getInventory().getContents());
+        meta.setBlockState(shulkerBox);
+        shulkerItem.setItemMeta(meta);
+
+        // 更新玩家手中的物品
+        player.getInventory().setItemInMainHand(shulkerItem);
+
+        // 移除元数据
+        player.removeMetadata("openedShulker", this);
     }
 
     // 检查物品是否是潜影盒
