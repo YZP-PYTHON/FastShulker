@@ -32,5 +32,5 @@ FastShulker 是一个基于 **Paper/leaves 1.21.3** 的轻量级服务器插件�
 - **依赖插件**
     - 无强制依赖
     - 可选兼容：CoreProtect
-
-
+---
+使用IDEA,ChatGPT辅助开发
