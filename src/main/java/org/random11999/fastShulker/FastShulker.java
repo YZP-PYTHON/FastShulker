@@ -1,10 +1,12 @@
 package org.random11999.fastShulker;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -16,105 +18,83 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class FastShulker extends JavaPlugin implements Listener {
 
+    private static final String META_SLOT = "fastshulker_slot";
+
     @Override
     public void onEnable() {
-        getServer().getPluginManager().registerEvents(this, this);
-        getLogger().info("FastShulker 插件已启用 - 右键点击潜影盒可直接打开!");
+        Bukkit.getPluginManager().registerEvents(this, this);
+        getLogger().info("FastShulker 1.0.0.1 加载成功");
     }
 
-    @Override
-    public void onDisable() {
-        getLogger().info("FastShulker 插件已禁用");
-    }
-
+    /* ===============================
+       右键打开潜影盒
+       =============================== */
     @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Action action = event.getAction();
-
-        // 只处理右键
-        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR) return;
 
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
 
-        // 判断是否潜影盒
-        if (!isShulkerBox(item)) {
-            return;
-        }
+        if (!isShulkerBox(item)) return;
 
-        // ✅ 右键空气：打开潜影盒并取消事件，防止放置
-        if (action == Action.RIGHT_CLICK_AIR) {
-            event.setCancelled(true);
-            openShulkerInventory(player, item);
-            return;
-        }
+        // Paper 1.21+ 必须显式禁止使用物品
+        event.setUseItemInHand(Result.DENY);
+        event.setCancelled(true);
 
-        // ✅ 右键方块：允许默认行为，不取消事件，让它能放下去
-        if (action == Action.RIGHT_CLICK_BLOCK) {
-            // 不 event.setCancelled(true)，Minecraft 会正常放置潜影盒
-            // 如果你想放置时也打开GUI，可以在这里调用 openShulkerInventory
-            // 但建议不调用，避免冲突
-        }
+        openShulker(player);
     }
 
-    private void openShulkerInventory(Player player, ItemStack item) {
+    private void openShulker(Player player) {
+        int slot = player.getInventory().getHeldItemSlot();
+        ItemStack item = player.getInventory().getItem(slot);
+
+        if (!isShulkerBox(item)) return;
+
         BlockStateMeta meta = (BlockStateMeta) item.getItemMeta();
         if (meta == null) return;
 
-        ShulkerBox shulkerBox = (ShulkerBox) meta.getBlockState();
-        Inventory inventory = shulkerBox.getInventory();
+        ShulkerBox box = (ShulkerBox) meta.getBlockState();
+        Inventory inv = Bukkit.createInventory(player, 27, "潜影盒");
 
-        // 保存潜影盒引用到玩家元数据中，用于关闭时保存
-        player.setMetadata("openedShulker", new FixedMetadataValue(this, item));
+        inv.setContents(box.getInventory().getContents());
 
-        // 打开GUI界面
-        player.openInventory(inventory);
+        player.setMetadata(META_SLOT, new FixedMetadataValue(this, slot));
+        player.openInventory(inv);
     }
 
+    /* ===============================
+       保存潜影盒内容
+       =============================== */
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
+        if (!player.hasMetadata(META_SLOT)) return;
 
-        // 获取之前保存的潜影盒物品
-        if (!player.hasMetadata("openedShulker")) return;
+        int slot = player.getMetadata(META_SLOT).get(0).asInt();
+        player.removeMetadata(META_SLOT, this);
 
-        ItemStack shulkerItem = (ItemStack) player.getMetadata("openedShulker").get(0).value();
-        if (shulkerItem == null || !isShulkerBox(shulkerItem)) return;
+        ItemStack item = player.getInventory().getItem(slot);
+        if (!isShulkerBox(item)) return;
 
-        // 更新潜影盒物品的NBT数据
-        BlockStateMeta meta = (BlockStateMeta) shulkerItem.getItemMeta();
+        BlockStateMeta meta = (BlockStateMeta) item.getItemMeta();
         if (meta == null) return;
 
-        ShulkerBox shulkerBox = (ShulkerBox) meta.getBlockState();
+        ShulkerBox box = (ShulkerBox) meta.getBlockState();
+        box.getInventory().setContents(event.getInventory().getContents());
 
-        // 将关闭的库存内容保存回潜影盒
-        shulkerBox.getInventory().setContents(event.getInventory().getContents());
-        meta.setBlockState(shulkerBox);
-        shulkerItem.setItemMeta(meta);
+        meta.setBlockState(box);
+        item.setItemMeta(meta);
 
-        // 更新玩家手中的物品
-        player.getInventory().setItemInMainHand(shulkerItem);
-
-        // 移除元数据
-        player.removeMetadata("openedShulker", this);
+        player.getInventory().setItem(slot, item);
     }
 
-    // 判断物品是否是潜影盒
+    /* ===============================
+       工具方法
+       =============================== */
     private boolean isShulkerBox(ItemStack item) {
-        if (item == null || item.getType().isEmpty()) {
-            return false;
-        }
-
-        return switch (item.getType()) {
-            case SHULKER_BOX, WHITE_SHULKER_BOX, ORANGE_SHULKER_BOX,
-                 MAGENTA_SHULKER_BOX, LIGHT_BLUE_SHULKER_BOX, YELLOW_SHULKER_BOX,
-                 LIME_SHULKER_BOX, PINK_SHULKER_BOX, GRAY_SHULKER_BOX,
-                 LIGHT_GRAY_SHULKER_BOX, CYAN_SHULKER_BOX, PURPLE_SHULKER_BOX,
-                 BLUE_SHULKER_BOX, BROWN_SHULKER_BOX, GREEN_SHULKER_BOX,
-                 RED_SHULKER_BOX, BLACK_SHULKER_BOX -> true;
-            default -> false;
-        };
+        if (item == null) return false;
+        Material m = item.getType();
+        return m.name().endsWith("SHULKER_BOX");
     }
 }
