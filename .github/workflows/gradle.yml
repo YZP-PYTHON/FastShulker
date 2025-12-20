@@ -42,7 +42,7 @@ jobs:
       - name: Read version from build.gradle
         id: version
         run: |
-          VERSION=$(grep "^version" build.gradle | sed -E "s/.*=['\"]([^'\"]+)['\"].*/\1/")
+          VERSION=$(grep "^version" build.gradle | sed -E "s/^version\s*=\s*['\"]([^'\"]+)['\"].*/\1/")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Detected version: $VERSION"
 
