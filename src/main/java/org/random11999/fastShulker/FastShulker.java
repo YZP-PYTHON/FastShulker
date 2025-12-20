@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -31,14 +32,16 @@ public final class FastShulker extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         getLogger().info("FastShulker 1.0.0.1 加载成功");
     }
-
+    public void onDisable() {
+        getLogger().info("FastShulker 1.0.0.1 卸载成功");
+    }
     /* ===============================
        右键打开潜影盒
        =============================== */
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         // 允许右键空气，也可以根据需求允许右键方块（防止放置）
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() == Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR ) return;
 
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
@@ -51,6 +54,15 @@ public final class FastShulker extends JavaPlugin implements Listener {
         event.setCancelled(true);
 
         openShulker(player);
+    }
+    @EventHandler
+    public void onPlayerKick(PlayerKickEvent event) {
+        // 检查踢出原因是否匹配Paper的热栏选择错误
+        if (event.getReason().contains("Invalid hotbar selection")) {
+            event.setCancelled(true);  // 取消踢出，让玩家继续游戏
+            // 可选：记录日志或通知玩家（非必需）
+            getLogger().info(event.getPlayer().getName() + " prevented invalid hotbar kick (creative pick block)(Invalid hotbar selection).");
+        }
     }
 
     private void openShulker(Player player) {
@@ -114,6 +126,22 @@ public final class FastShulker extends JavaPlugin implements Listener {
 
         // 3. 禁止副手交换 (F键) - 通常由 PlayerSwapHandEvent 处理，但在打开 GUI 时 F 键通常无效，
         // 但为了安全起见，建议确保该物品被“锁定”。
+        if (event.getClickedInventory() != null &&
+                event.getClickedInventory().getType() == InventoryType.CHEST &&
+                event.getCursor() != null) {
+
+            ItemStack cursor = event.getCursor();
+
+            // 禁止放入潜影盒
+            if (isShulkerBox(cursor)) {
+                event.setCancelled(true);
+                player.sendMessage("§c不能将潜影盒放入潜影盒中！");
+                return;
+            }
+
+
+
+        }
     }
 
     /* ===============================
@@ -145,6 +173,28 @@ public final class FastShulker extends JavaPlugin implements Listener {
         if (meta == null) return;
 
         ShulkerBox box = (ShulkerBox) meta.getBlockState();
+        ItemStack[] contents = event.getInventory().getContents();
+        Inventory gui = event.getInventory();
+        int hasIllegal_item=0;
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack content = contents[i];
+            ItemStack content1 = gui.getItem(i);
+            if (isShulkerBox(content)) {
+                // 移除非法物品
+                //contents[i] = null;
+                gui.setItem(i, null);
+                // 返还给玩家（背包满则掉落）
+                var leftover = player.getInventory().addItem(content);
+                for (ItemStack drop : leftover.values()) {
+                    player.getWorld().dropItem(player.getLocation(), drop);
+                }
+                getLogger().info(player.getName()+"'s SHULKER_BOX has illegal item "+contents[i].displayName()+" it has benn remove and return to player's backpack");
+                hasIllegal_item=1;
+            }
+        }
+        if (hasIllegal_item == 1){
+            player.sendMessage("§c已移除潜影盒中的非法潜影盒，并返还给你！");
+        }
         box.getInventory().setContents(event.getInventory().getContents());
 
         meta.setBlockState(box);
@@ -158,8 +208,18 @@ public final class FastShulker extends JavaPlugin implements Listener {
        工具方法
        =============================== */
     private boolean isShulkerBox(ItemStack item) {
-        if (item == null) return false;
-        Material m = item.getType();
-        return m.name().endsWith("SHULKER_BOX");
+        if (item == null || item.getType().isEmpty()) {
+            return false;
+        }
+
+        return switch (item.getType()) {
+            case SHULKER_BOX, WHITE_SHULKER_BOX, ORANGE_SHULKER_BOX,
+                 MAGENTA_SHULKER_BOX, LIGHT_BLUE_SHULKER_BOX, YELLOW_SHULKER_BOX,
+                 LIME_SHULKER_BOX, PINK_SHULKER_BOX, GRAY_SHULKER_BOX,
+                 LIGHT_GRAY_SHULKER_BOX, CYAN_SHULKER_BOX, PURPLE_SHULKER_BOX,
+                 BLUE_SHULKER_BOX, BROWN_SHULKER_BOX, GREEN_SHULKER_BOX,
+                 RED_SHULKER_BOX, BLACK_SHULKER_BOX -> true;
+            default -> false;
+        };
     }
 }
