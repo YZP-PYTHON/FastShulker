@@ -3,7 +3,10 @@ name: Java CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+
+permissions:
+  contents: write   # 允许创建 tag 和 release
 
 jobs:
   build:
@@ -33,4 +36,32 @@ jobs:
           path: |
             build/libs/*.jar
             build/libs/*-all.jar
-          retention-days: 5
+
+      # ===== 自动读取版本号并发布 Release =====
+
+      - name: Read version from build.gradle
+        id: version
+        run: |
+          VERSION=$(grep "^version" build.gradle | sed -E "s/.*=['\"]([^'\"]+)['\"].*/\1/")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Create Git tag
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skip creating tag"
+            exit 0
+          fi
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: FastShulker v${{ steps.version.outputs.version }}
+          body: ${{ github.event.head_commit.message }}
+          files: |
+            build/libs/*.jar
+            build/libs/*-all.jar
