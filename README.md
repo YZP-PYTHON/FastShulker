@@ -1,4 +1,7 @@
 # **FastShulker**
+**有严重bug，请不要使用**
+**There is a serious bug, please do not use it**
+
 
 FastShulker 是一个基于 **Paper/leaves 1.21.3** 的轻量级服务器插件，允许玩家 **手持潜影盒对空气右键即可直接打开潜影盒 GUI**，无需将其放置在地面上。
 
