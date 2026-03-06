@@ -45,9 +45,9 @@ public final class FastShulker extends JavaPlugin implements Listener {
     /* ===============================
        右键打开潜影盒
        =============================== */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent event) {
-        // 仅处理右键操作
+        // 处理右键空气和右键方块
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Player player = event.getPlayer();
@@ -55,10 +55,13 @@ public final class FastShulker extends JavaPlugin implements Listener {
 
         if (!isShulkerBox(item)) return;
 
-        // 拦截右键，防止放置潜影盒或触发其他交互
+        // 彻底拦截：防止方块放置、交互以及客户端的放置预览（选框）
+        event.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
+        event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
         event.setCancelled(true);
 
-        openShulker(player, item);
+        // 延迟一刻打开 GUI，这通常能更好地解决客户端预览选框残留的问题，并确保事件流程完整
+        Bukkit.getScheduler().runTask(this, () -> openShulker(player, item));
     }
 
     private void openShulker(Player player, ItemStack item) {
