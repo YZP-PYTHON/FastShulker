@@ -1,37 +1,46 @@
 # **FastShulker**
-FastShulker 是一个基于 **Paper 1.21** 的轻量级服务器插件，允许玩家 **手持潜影盒右键即可直接打开潜影盒 GUI**，无需将其放置在地面上。
+
+[简体中文](https://github.com/YZP-PYTHON/FastShulker/blob/main/README_cn.md) 
+English
 
 
-
----
-
-## ✨ 功能介绍
-
-- 🖱 **右键空气直接打开潜影盒**
-    - 玩家手持任意颜色的潜影盒，对空气右键即可打开其内容
-    - 不影响对方块右键放置潜影盒的原版行为
-
-
-- 🧩 **兼容 CoreProtect**
-    - 不使用异常的虚拟方块放置
-    - 不会触发 CoreProtect 报错或异常日志
-    - 潜影盒内容修改行为符合正常物品数据变更逻辑
+FastShulker is a **lightweight server plugin based on Paper 1.21** that allows players to **open a shulker box GUI directly by right-clicking while holding it**, without placing it on the ground.
 
 ---
 
-## 🖥 运行环境
+## ✨ Features
 
-- **Minecraft 服务端**
-    - Paper **1.21.3**
-    - 不保证兼容 Spigot / Bukkit（推荐使用 Paper）
+* 🖱 **Right-click air to open a shulker box**
 
-- **Java 版本**
-    - Java **21** 或更高（与 Paper 1.21.x 要求一致）
+    * Players can open the contents of any colored shulker box by right-clicking the air while holding it.
+    * The vanilla behavior of placing a shulker box when right-clicking a block is **not affected**.
 
-- **依赖插件**
-    - 无强制依赖
-    - 可选兼容：CoreProtect
+* 🧩 **CoreProtect compatible**
+
+    * Does **not** use abnormal virtual block placement.
+    * Will **not trigger CoreProtect errors or abnormal logs**.
+    * Shulker box content modifications follow the normal item data change logic.
+
 ---
-## 🖥 运行环境
-*使用IDEA,ChatGPT辅助开发*
 
+## 🖥 Runtime Environment
+
+* **Minecraft Server**
+
+    * Paper **1.21.3**
+    * Compatibility with Spigot/Bukkit is **not guaranteed** (Paper is recommended)
+
+* **Java Version**
+
+    * Java **21** or higher (consistent with Paper 1.21.x requirements)
+
+* **Plugin Dependencies**
+
+    * No required dependencies
+    * Optional compatibility: CoreProtect
+
+---
+
+## 🛠 Development
+
+*Developed using IntelliJ IDEA with assistance from ChatGPT.*
