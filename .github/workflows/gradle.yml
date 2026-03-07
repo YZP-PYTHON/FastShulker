@@ -66,3 +66,23 @@ jobs:
           files: |
             build/libs/*.jar
             build/libs/*-all.jar
+            
+      - name: Find correct JAR
+        id: findjar
+        run: |
+          output="$(find build/libs/ ! -name "*-dev.jar" ! -name "*-sources.jar" -type f -printf "%f\n")"
+          echo "jarname=$output" >> $GITHUB_OUTPUT
+
+      - name: Upload to Modrinth
+        uses: RubixDev/modrinth-upload@v1
+        with:
+          token: ${{ secrets.MODRINTH_API_KEY }}
+          file_path: build/libs/${{ steps.findjar.outputs.jarname }}
+          name: FastShulker v${{ steps.version.outputs.version }}
+          version: ${{ steps.version.outputs.version }}
+          changelog: ${{ github.event.head_commit.message }}
+          game_versions: 1.21.x
+          release_type: release
+          loaders: paper
+          featured: true
+          project_id: oUw5V1Sl
