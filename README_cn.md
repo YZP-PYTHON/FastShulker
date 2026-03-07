@@ -2,7 +2,7 @@
 
 
 简体中文
-[English](https://github.com/YZP-PYTHON/FastShulker/blob/main/README.md)
+[English](README.md)
 
 FastShulker 是一个基于 **Paper 1.21** 的轻量级服务器插件，允许玩家 **手持潜影盒右键即可直接打开潜影盒 GUI**，无需将其放置在地面上。
 

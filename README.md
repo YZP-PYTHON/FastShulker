@@ -1,6 +1,6 @@
 # **FastShulker**
 
-[简体中文](https://github.com/YZP-PYTHON/FastShulker/blob/autoupdate/README_cn.md) 
+[简体中文](README_cn.md) 
 English
 
 
