@@ -1,4 +1,5 @@
 # **FastShulker**
+<img src="icon_画板 1_画板 1.png" alt="我的图片" width="100">
 
 [简体中文](README_cn.md) 
 English
@@ -41,6 +42,5 @@ FastShulker is a **lightweight server plugin based on Paper 1.21** that allows p
 
 ---
 
-## 🛠 Development
 
 *Developed using IntelliJ IDEA with assistance from ChatGPT.*
