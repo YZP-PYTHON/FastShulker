@@ -1,0 +1,31 @@
+name: Sync Release to Modrinth
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  sync_to_modrinth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install requests
+        run: |
+          pip install requests
+
+      - name: Sync Release to Modrinth
+        run: |
+          python sync_to_modrinth.py
+        env:
+          MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}  # Modrinth API 密钥
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token
+          VERSION_NUMBER: ${{ github.ref }}  # 自动获取 GitHub Release 版本
+          LOADERS: "java,otherLoader"  # 可自定义多个加载器，用逗号分隔
+          GAME_VERSIONS: "1.21.3,1.20.4"  # 可自定义多个游戏版本
