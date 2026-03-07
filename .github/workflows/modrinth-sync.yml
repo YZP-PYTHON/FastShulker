@@ -2,30 +2,31 @@ name: Sync Release to Modrinth
 
 on:
   release:
-    types: [published]
+    types: [published] # 关键修改：仅在发布正式版时触发，避免草稿或编辑触发
 
 jobs:
   sync_to_modrinth:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4 # 建议更新到 v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5 # 建议更新到 v5
         with:
           python-version: '3.x'
 
       - name: Install requests
         run: |
+          python -m pip install --upgrade pip
           pip install requests
 
       - name: Sync Release to Modrinth
         run: |
           python sync_to_modrinth.py
         env:
-          MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}  # Modrinth API 密钥
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token
-          VERSION_NUMBER: ${{ github.ref }}  # 自动获取 GitHub Release 版本
-          LOADERS: "paper"  # 可自定义多个加载器，用逗号分隔
-          GAME_VERSIONS: "1.21.x"  # 可自定义多个游戏版本
+          MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_NUMBER: ${{ github.ref_name }} # 建议使用 ref_name，它返回干净的 tag 名 (如 v1.0.0)，而不是 refs/tags/v1.0.0
+          LOADERS: "paper"
+          GAME_VERSIONS: "1.21.x"
