@@ -4,8 +4,8 @@ import requests
 # 获取环境变量
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 MODRINTH_API_KEY = os.getenv('MODRINTH_API_KEY')
-REPO_OWNER = "your-github-username"  # 修改为你的 GitHub 用户名
-REPO_NAME = "your-repository-name"  # 修改为你的仓库名
+REPO_OWNER = "YZP-PYTHON"  # 修改为你的 GitHub 用户名
+REPO_NAME = "FastShulker"  # 修改为你的仓库名
 RELEASE_TAG = os.getenv('GITHUB_REF').split('/')[-1]  # 获取发布版本标签
 VERSION_NUMBER = os.getenv('VERSION_NUMBER', RELEASE_TAG)  # 默认为 RELEASE_TAG，但可覆盖
 LOADERS = os.getenv('LOADERS', 'java').split(',')  # 默认加载器为 "java"，但支持多个加载器（逗号分隔）
@@ -24,6 +24,7 @@ def get_release_assets():
     # 获取所有资源文件（附加在 Release 上的文件）
     assets = release_data.get('assets', [])
     asset_urls = [asset['browser_download_url'] for asset in assets]
+    print("get github asset success",assets)
     return asset_urls
 
 def upload_to_modrinth():
