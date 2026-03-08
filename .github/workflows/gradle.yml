@@ -81,7 +81,6 @@ jobs:
           name: FastShulker v${{ steps.version.outputs.version }}
           version: ${{ steps.version.outputs.version }}
           changelog: ${{ github.event.head_commit.message }}
-          game_versions: 1.21.x
           release_type: release
           loaders: paper
           featured: true
