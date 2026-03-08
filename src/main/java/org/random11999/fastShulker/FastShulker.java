@@ -34,12 +34,12 @@ public final class FastShulker extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
-        getLogger().info("FastShulker 1.0.1 Load success");
+        getLogger().info("FastShulker 1.0.3 Load success");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("FastShulker 1.0.1 Disable success");
+        getLogger().info("FastShulker 1.0.3 Disable success");
     }
 
     /* ===============================
