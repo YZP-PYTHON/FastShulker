@@ -15,7 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerKickEvent;
+
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -34,12 +34,12 @@ public final class FastShulker extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
-        getLogger().info("FastShulker 1.0.1 加载成功");
+        getLogger().info("FastShulker 1.0.3 Load success");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("FastShulker 1.0.1 卸载成功");
+        getLogger().info("FastShulker 1.0.3 Disable success");
     }
 
     /* ===============================
