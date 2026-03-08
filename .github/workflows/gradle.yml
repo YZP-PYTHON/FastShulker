@@ -82,6 +82,7 @@ jobs:
           version: ${{ steps.version.outputs.version }}
           changelog: ${{ github.event.head_commit.message }}
           release_type: release
+          game_versions: 1.21,1.21.1,1.21.2,1.21.3,1.21.4,1.21.5,1.21.6,1.21.7,1.21.8
           loaders: paper
           featured: true
           project_id: oUw5V1Sl
