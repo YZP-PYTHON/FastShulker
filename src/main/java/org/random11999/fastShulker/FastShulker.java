@@ -17,12 +17,14 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.inventory.InventoryHolder;
 
 import java.util.UUID;
 
@@ -47,10 +49,13 @@ public final class FastShulker extends JavaPlugin implements Listener {
        =============================== */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent event) {
-        // 处理右键空气和右键方块
-        if (event.getAction() != Action.RIGHT_CLICK_AIR ) return;
-
         Player player = event.getPlayer();
+        // 处理右键空气和右键方块
+        if (player.hasMetadata(META_OPENING)) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR) return;
+
+
         ItemStack item = player.getInventory().getItemInMainHand();
 
         if (!isShulkerBox(item)) return;
@@ -76,13 +81,16 @@ public final class FastShulker extends JavaPlugin implements Listener {
         item.setItemMeta(meta);
 
         ShulkerBox box = (ShulkerBox) meta.getBlockState();
-        Inventory inv = Bukkit.createInventory(player, 27, Component.text("潜影盒", NamedTextColor.DARK_PURPLE));
+        Inventory inv = Bukkit.createInventory(new ShulkerHolder(uuid), 27, Component.text("潜影盒", NamedTextColor.DARK_PURPLE));
         inv.setContents(box.getInventory().getContents());
 
         // 记录玩家正在打开的潜影盒 UUID
-        player.setMetadata(META_OPENING, new FixedMetadataValue(this, uuid));
+
 
         player.openInventory(inv);
+        Bukkit.getScheduler().runTask(this, () -> {
+            player.setMetadata(META_OPENING, new FixedMetadataValue(this, uuid));
+        });
         player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_OPEN, 1.0f, 1.0f);
         getLogger().info("Player " + player.getName() + " opened successfully");
     }
@@ -174,9 +182,12 @@ public final class FastShulker extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
-        if (!player.hasMetadata(META_OPENING)) return;
+        if (!(event.getInventory().getHolder() instanceof ShulkerHolder holder)) {
+            return; // ⭐ 不是你的GUI
+        }
 
-        String uuid = player.getMetadata(META_OPENING).get(0).asString();
+        String uuid = holder.getUuid();
+
         player.removeMetadata(META_OPENING, this);
 
         // 寻找持有对应 UUID 的潜影盒（全背包搜索，防止玩家在打开时移动了它）
@@ -258,3 +269,7 @@ public final class FastShulker extends JavaPlugin implements Listener {
         }
     }
 }
+
+
+
+
