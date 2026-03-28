@@ -84,6 +84,7 @@ public final class FastShulker extends JavaPlugin implements Listener {
 
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_OPEN, 1.0f, 1.0f);
+        getLogger().info("Player " + player.getName() + " opened successfully");
     }
 
     /* ===============================
@@ -215,6 +216,7 @@ public final class FastShulker extends JavaPlugin implements Listener {
 
         // 将处理后的物品列表保存到潜影盒中
         box.getInventory().setContents(contents);
+        getLogger().info("Player " + player.getName() + " closed successfully1");
         
         // 移除 UUID 标记
         meta.getPersistentDataContainer().remove(KEY_UUID);
@@ -222,6 +224,7 @@ public final class FastShulker extends JavaPlugin implements Listener {
         shulkerItem.setItemMeta(meta);
 
         player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_CLOSE, 1.0f, 1.0f);
+        getLogger().info("Player " + player.getName() + " closed successfully1");
     }
 
     /* ===============================
