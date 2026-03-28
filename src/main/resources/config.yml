@@ -1,7 +1,6 @@
 #enable plug-in
 enable: true
 
-
 #enable sound
 play-sound: true
 
