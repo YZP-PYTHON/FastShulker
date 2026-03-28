@@ -1,0 +1,11 @@
+#enable plug-in
+enable: true
+
+#enable sound
+play-sound: true
+
+#change gui title
+gui-title: "潜影盒"
+
+#debug logging mode
+debug: false

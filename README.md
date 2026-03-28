@@ -28,7 +28,7 @@ FastShulker is a **lightweight server plugin based on Paper 1.21** that allows p
 
 * **Minecraft Server**
 
-    * Paper **1.21.3**
+    * Paper **1.21.x**
     * Compatibility with Spigot/Bukkit is **not guaranteed** (Paper is recommended)
 
 * **Java Version**
@@ -42,5 +42,29 @@ FastShulker is a **lightweight server plugin based on Paper 1.21** that allows p
 
 ---
 
+## Command
+* **Reload config**
+    * `/fastshulker reload`
+
+---
+
+## Config file
+```yaml
+#enable plug-in
+enable: true
+
+
+#enable sound
+play-sound: true
+
+#change gui title
+gui-title: "ShulkerBox"
+
+#debug logging mode
+debug: false
+
+```
+
+---
 
 *Developed using IntelliJ IDEA with assistance from ChatGPT.*

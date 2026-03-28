@@ -8,6 +8,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.Tag;
 import org.bukkit.block.ShulkerBox;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,13 +19,16 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.inventory.InventoryHolder;
 
+import java.util.List;
 import java.util.UUID;
 
 public final class FastShulker extends JavaPlugin implements Listener {
@@ -34,6 +39,7 @@ public final class FastShulker extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
+        saveDefaultConfig();
         getLogger().info("FastShulker 1.0.3 Load success");
     }
 
@@ -47,10 +53,14 @@ public final class FastShulker extends JavaPlugin implements Listener {
        =============================== */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent event) {
-        // 处理右键空气和右键方块
-        if (event.getAction() != Action.RIGHT_CLICK_AIR ) return;
-
         Player player = event.getPlayer();
+        if (!getConfig().getBoolean("enable")) return;
+        // 处理右键空气和右键方块
+        if (player.hasMetadata(META_OPENING)) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR) return;
+
+
         ItemStack item = player.getInventory().getItemInMainHand();
 
         if (!isShulkerBox(item)) return;
@@ -62,6 +72,9 @@ public final class FastShulker extends JavaPlugin implements Listener {
 
         // 延迟一刻打开 GUI，这通常能更好地解决客户端预览选框残留的问题，并确保事件流程完整
         Bukkit.getScheduler().runTask(this, () -> openShulker(player, item));
+        if(getConfig().getBoolean("debug")){
+            getLogger().info("["+ player.getName() +"]"+"player triggerd successfully");
+        }
     }
 
     private void openShulker(Player player, ItemStack item) {
@@ -76,14 +89,23 @@ public final class FastShulker extends JavaPlugin implements Listener {
         item.setItemMeta(meta);
 
         ShulkerBox box = (ShulkerBox) meta.getBlockState();
-        Inventory inv = Bukkit.createInventory(player, 27, Component.text("潜影盒", NamedTextColor.DARK_PURPLE));
+        Inventory inv = Bukkit.createInventory(new ShulkerHolder(uuid), 27, Component.text(getConfig().getString("gui-title","潜影盒"), NamedTextColor.DARK_PURPLE));
         inv.setContents(box.getInventory().getContents());
 
         // 记录玩家正在打开的潜影盒 UUID
-        player.setMetadata(META_OPENING, new FixedMetadataValue(this, uuid));
+
 
         player.openInventory(inv);
-        player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_OPEN, 1.0f, 1.0f);
+        Bukkit.getScheduler().runTask(this, () -> {
+            player.setMetadata(META_OPENING, new FixedMetadataValue(this, uuid));
+        });
+        if(getConfig().getBoolean("play-sound")){
+            player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_OPEN, 1.0f, 1.0f);
+        }
+        if(getConfig().getBoolean("debug")){
+            getLogger().info("["+player.getName()+"]"+"Player opened successfully");
+        }
+
     }
 
     /* ===============================
@@ -137,6 +159,9 @@ public final class FastShulker extends JavaPlugin implements Listener {
             if (isShulkerBox(itemToPut)) {
                 event.setCancelled(true);
                 player.sendMessage(Component.text("不能将潜影盒放入潜影盒中！", NamedTextColor.RED));
+                if(getConfig().getBoolean("debug")){
+                    getLogger().info("["+player.getName()+"]"+"illegal item has been moved");
+                }
                 return;
             }
         }
@@ -173,9 +198,12 @@ public final class FastShulker extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
-        if (!player.hasMetadata(META_OPENING)) return;
+        if (!(event.getInventory().getHolder() instanceof ShulkerHolder holder)) {
+            return; // ⭐ 不是你的GUI
+        }
 
-        String uuid = player.getMetadata(META_OPENING).get(0).asString();
+        String uuid = holder.getUuid();
+
         player.removeMetadata(META_OPENING, this);
 
         // 寻找持有对应 UUID 的潜影盒（全背包搜索，防止玩家在打开时移动了它）
@@ -215,13 +243,24 @@ public final class FastShulker extends JavaPlugin implements Listener {
 
         // 将处理后的物品列表保存到潜影盒中
         box.getInventory().setContents(contents);
+        if(getConfig().getBoolean("debug")){
+            getLogger().info("["+player.getName()+"]"+"Player saved successfully");
+        }
+
         
         // 移除 UUID 标记
         meta.getPersistentDataContainer().remove(KEY_UUID);
         meta.setBlockState(box);
         shulkerItem.setItemMeta(meta);
+        if (getConfig().getBoolean("play-sound")) {
+            player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_CLOSE, 1.0f, 1.0f);
+        }
 
-        player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_CLOSE, 1.0f, 1.0f);
+
+
+        if(getConfig().getBoolean("debug")){
+            getLogger().info("["+player.getName()+"]"+"Player closed successfully");
+        }
     }
 
     /* ===============================
@@ -254,4 +293,60 @@ public final class FastShulker extends JavaPlugin implements Listener {
             }
         }
     }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
+        if (!command.getName().equalsIgnoreCase("fastshulker")) {
+            return false;
+        }
+
+        // 没参数 → 提示
+        if (args.length == 0) {
+            sender.sendMessage("§c用法: /fastshulker reload");
+            return true;
+        }
+
+        // reload 子命令
+        if (args[0].equalsIgnoreCase("reload")) {
+
+            // 权限检查
+            if (!sender.hasPermission("fastshulker.reload")) {
+                sender.sendMessage("§c你没有权限执行这个命令！");
+                return true;
+            }
+
+            try {
+                reloadConfig(); // ⭐ 重新加载配置
+
+                sender.sendMessage("§aFastShulker 配置已重载！");
+                getLogger().info(sender.getName() + " reloaded config");
+
+            } catch (Exception e) {
+                sender.sendMessage("§c配置重载失败，请查看控制台！");
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+
+        return true;
+    }
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        if (command.getName().equalsIgnoreCase("fastshulker")) {
+            if (args.length == 1) {
+                return java.util.Arrays.asList("reload");
+            }
+        }
+
+        return java.util.Collections.emptyList();
+    }
 }
+
+
+
+
+
+
